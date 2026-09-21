@@ -15,7 +15,6 @@ typedef struct {
 
 typedef struct {
     float volts;
-    SensorAngle estimated_sensor_angle;
 } Voltage;
 
 typedef struct {

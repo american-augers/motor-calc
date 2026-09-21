@@ -2,6 +2,7 @@ use motor_calc_core::parameters::Parameters;
 use num_traits::Float;
 
 pub mod assembly;
+pub mod calculation;
 pub mod motor;
 pub mod mounted_sensor;
 pub mod sensor;

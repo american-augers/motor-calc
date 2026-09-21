@@ -4,6 +4,7 @@ use motor_calc::{
     model::{
         Adjustable,
         assembly::{AssemblyModel, parameters::AssemblyParameters},
+        calculation::CalculationContext,
         motor::{MotorModel, parameters::MotorParameters},
         mounted_sensor::parameters::MountedSensorParameters,
         sensor::{SensorModel, parameters::SensorParameters},
@@ -17,7 +18,7 @@ use motor_calc::{
 use motor_calc_core::parameters::Parameters;
 
 fn main() {
-    let mut voltages = [
+    let voltages = [
         (1800, 3719),
         (1233, 3551),
         (1122, 2894),
@@ -65,14 +66,12 @@ fn main() {
 
         let mut sum_of_squared_errors = 0.0;
 
-        for &mut (mut alpha_voltage, mut beta_voltage) in &mut voltages {
+        for &(alpha_voltage, beta_voltage) in &voltages {
+            let mut context = CalculationContext::new(alpha_voltage, beta_voltage);
+
             let gradient = assembly
                 .gradient()
-                .grad_squared_error_estimated_displacement(
-                    &mut alpha_voltage,
-                    &mut beta_voltage,
-                    1.0,
-                )
+                .grad_squared_error_estimated_displacement(&mut context, 1.0)
                 * gain;
             let negative_gradient = -gradient;
             assembly.adjust(negative_gradient);
@@ -100,10 +99,7 @@ fn main() {
 
             sum_of_squared_errors += assembly.inverse().squared_error_estimated_displacement(
                 assembly.inverse().error_estimated_displacement(
-                    assembly.inverse().estimated_displacement(
-                        alpha_voltage.estimated_sensor_angle(assembly.alpha_sensor_ref().inverse()),
-                        beta_voltage.estimated_sensor_angle(assembly.beta_sensor_ref().inverse()),
-                    ),
+                    context.estimated_displacement(assembly.inverse()),
                     1.0,
                 ),
             )
@@ -111,16 +107,12 @@ fn main() {
 
         if i % 1000 == 0 {
             println!("{}", i);
-            for &mut (mut alpha_voltage, mut beta_voltage) in &mut voltages {
+            for &(alpha_voltage, beta_voltage) in &voltages {
+                let mut context = CalculationContext::new(alpha_voltage, beta_voltage);
+
                 println!(
                     "{:06.2}",
-                    100.0
-                        * assembly.inverse().estimated_displacement(
-                            alpha_voltage
-                                .estimated_sensor_angle(assembly.alpha_sensor_ref().inverse()),
-                            beta_voltage
-                                .estimated_sensor_angle(assembly.beta_sensor_ref().inverse())
-                        ),
+                    100.0 * context.estimated_displacement(assembly.inverse()),
                 );
             }
             println!("sum of squared errors is {}", sum_of_squared_errors);
