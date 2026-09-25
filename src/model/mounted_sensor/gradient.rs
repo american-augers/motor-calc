@@ -49,6 +49,25 @@ impl<'g, 'm, 's, F: Float> GradientMountedSensorModel<'g, 'm, 's, F, Beta> {
         )
     }
 
+    pub fn grad_sin_cos_estimated_shaft_angle_offset(self) -> (Parameters<F>, Parameters<F>) {
+        let (sin_beta_shaft_angle_offset, cos_beta_shaft_angle_offset) = self
+            .mounted_sensor()
+            .parameters()
+            .shaft_angle_offset()
+            .sin_cos();
+
+        (
+            motor_calc_core::gradient::grad_sin_beta_shaft_angle_offset(
+                cos_beta_shaft_angle_offset,
+                self.grad_shaft_angle_offset(),
+            ),
+            motor_calc_core::gradient::grad_cos_beta_shaft_angle_offset(
+                sin_beta_shaft_angle_offset,
+                self.grad_shaft_angle_offset(),
+            ),
+        )
+    }
+
     pub fn grad_estimated_relative_shaft_angle(
         self,
         grad_estimated_shaft_angle: Parameters<F>,
@@ -84,6 +103,29 @@ impl<'g, 'm, 's, F: Float> GradientMountedSensorModel<'g, 'm, 's, F, Beta> {
                 .relative_shaft_angle(estimated_shaft_angle)
                 .sin(),
             self.grad_estimated_relative_shaft_angle(grad_estimated_shaft_angle),
+        )
+    }
+
+    pub fn grad_sin_cos_estimated_relative_shaft_angle(
+        self,
+        estimated_shaft_angle: ShaftAngle<F>,
+        grad_estimated_shaft_angle: Parameters<F>,
+    ) -> (Parameters<F>, Parameters<F>) {
+        let (sin_estimated_relative_shaft_angle, cos_estimated_relative_shaft_angle) = self
+            .mounted_sensor()
+            .forward()
+            .relative_shaft_angle(estimated_shaft_angle)
+            .sin_cos();
+
+        (
+            motor_calc_core::gradient::grad_sin_estimated_relative_shaft_angle(
+                cos_estimated_relative_shaft_angle,
+                self.grad_estimated_relative_shaft_angle(grad_estimated_shaft_angle),
+            ),
+            motor_calc_core::gradient::grad_cos_estimated_relative_shaft_angle(
+                sin_estimated_relative_shaft_angle,
+                self.grad_estimated_relative_shaft_angle(grad_estimated_shaft_angle),
+            ),
         )
     }
 }

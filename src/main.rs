@@ -43,7 +43,7 @@ fn main() {
 
     let mut parameters = Parameters::new(6.75, 2.0 * TAU / 7.0, 48.0 / TAU, 2.5, 48.0 / TAU, 2.5);
 
-    let gain = 0.0001;
+    let gain = 0.01;
 
     for i in 0..=10000000 {
         let mut assembly = AssemblyModel::new(
